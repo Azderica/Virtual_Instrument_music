@@ -5,6 +5,7 @@
 #include	<unistd.h>
 #include	<sys/wait.h>
 #include	<termios.h>
+#include <pthread.h>
 
 void set_cr_noecho_mode(void);
 void tty_mode(int);
@@ -13,7 +14,7 @@ int playSound( char *filename ) {
 	char command[256];
 	int status;
 
-	sprintf( command, "aplay -c 1 -q -t wav %s", filename );
+	sprintf( command, "aplay -N -c 1 -q -t wav %s", filename );
 
 	status = system( command );
 
@@ -21,6 +22,8 @@ int playSound( char *filename ) {
 }
 
 int main() {
+	pthread_t t;
+	int i = 0;
 	int pid;
 	int response = 1;
 	char *name;	// = "wav/";
@@ -36,15 +39,21 @@ int main() {
 		name = (char*)malloc(sizeof(1000));
 		c[0] = getchar();
 		c[1] = '\0';
-
 		strcpy(name, "wav/");
 
 		strcat(name, c);
 		strcat(name, line);
-		playSound(name);
-
+		pthread_create(&t, NULL, playSound,(void *)name);
+		//playSound(name);
+		usleep(10000);
+		
+	//	pthread_create(&t[1], NULL, playSound,(void *)name);
+	//	pthread_join(t[0],NULL);
+	//	pthread_join(t[1],NULL);
 		free(name);
 	}
+//	pthread_join(t1,NULL);
+//	pthread_join(t2,NULL);
 	tty_mode(1);
 
 	return 0;
