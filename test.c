@@ -21,6 +21,9 @@ void drawing_play_piano();		// drawing play piano
 void drawing_record_piano();		// drawing record piano
 void drawing_listen_paino();		// drawing listen piano
 
+/* check */
+int check_valid_input(char input);	// check valid key value
+
 int num = 0;
 
 int playSound( char *filename ) {	// play sound function
@@ -30,14 +33,13 @@ int playSound( char *filename ) {	// play sound function
 	sprintf( command, "aplay -N -c 1 -q -t wav %s", filename );
 
 	status = system( command );
-	printf("num = %d\n", num);
 	num-=1;
 	return status;
 }
 
 int main() {
 	pthread_t t;
-	int i = 0, response = 0;
+	int i = 0, response = 1;
 	char *name;	// = "wav/";
 	char line[5] = ".wav", c[2];
 
@@ -49,6 +51,7 @@ int main() {
 	set_cr_noecho_mode();
 	signal(SIGINT, exception_handler);
 	signal(SIGQUIT, exception_handler);
+	resize_term(30, 95);
 	initscr();
 	clear();
 
@@ -59,41 +62,76 @@ int main() {
 	clear();
 	refresh();
 
-	/*************************************************
-	 *                   Select Menu                 *
-	 *************************************************/
-	response = drawing_select_img();
-	clear();
-	refresh();
-
         /*************************************************
          *                     Loop                      *
          *************************************************/
-	//if(response == 1)
-	drawing_play_piano();
+	while(response){
 
-	while(1){
-		name = (char*)malloc(sizeof(1000));
-		c[0] = getchar();
-			
-		c[1] = '\0';
-		strcpy(name, "wav/");
+		/*************************************************
+		 *                   Select Menu                 *
+		 *************************************************/
+		response = drawing_select_img();
+		clear();
+		refresh();
+	
+		if(response == 1){
+			drawing_play_piano();
+	
+			while(1){
+				name = (char*)malloc(sizeof(1000));
+				c[0] = getchar();
+				if(check_valid_input(c[0])){
+					c[1] = '\0';
+					strcpy(name, "wav/");
+					strcat(name, c);
+					strcat(name, line);
+					if(num<30)
+					{
+						pthread_create(&t, NULL, playSound,(void *)name);
+						usleep(10000);
+					}
+					free(name);
+				}
+				if(c[0] == '[' || c[0] == ']')
+					break;
+			}
+		}
 
-		strcat(name, c);
-		strcat(name, line);
-		if(num<30)
-		{
-			pthread_create(&t, NULL, playSound,(void *)name);
-			usleep(10000);
+		if(response == 2){
+			drawing_record_piano();
+
+			while(1){
+				name = (char*)malloc(sizeof(1000));
+				c[0] = getchar();
+				if(check_valid_input(c[0])){
+					c[1] = '\0';
+					strcpy(name, "wav/");
+					strcat(name, c);
+					strcat(name, line);
+					if(num<30)
+					{
+						pthread_create(&t, NULL, playSound,(void *)name);
+						usleep(10000);
+					}
+					free(name);
+				}
+				if(c[0] == '[' || c[0] == ']')
+					break;
+			}
 		}
-		else
-		{
+
+		if(response == 3){
+			drawing_listen_paino();
+
+			while(1){
+				getchar();
 			
+			}
 		}
-		
-		free(name);
+		clear();
 		refresh();
 	}
+
 	endwin();
 	tty_mode(1);
 
@@ -126,7 +164,7 @@ void exception_handler(){
 }
 
 void drawing_start_img(){
-	resize_term(25, 95);
+	//resize_term(30, 95);
 	int i, j, x, y;
 	char str[2][8][100];
 	char input;
@@ -178,8 +216,7 @@ void drawing_start_img(){
 }
 
 int drawing_select_img(){
-	resize_term(25, 95);
-	int i, j, x, y;
+	int x, y;
 	char input;
 
 	x = 4;
@@ -199,7 +236,7 @@ int drawing_select_img(){
 	move(x+16, y);
 	addstr("-----------------------------------------------------------------------------");
 	move(x+17, y);
-	addstr("            Key       - u : up   d : down   y : select   n : exit            ");
+	addstr("            Key    -    u : up   d : down   y : select   n : exit            ");
 	move(x+18, y);
 	addstr("-----------------------------------------------------------------------------");
 
@@ -236,24 +273,82 @@ int drawing_select_img(){
 }
 
 void drawing_play_piano(){
-	int i, j, x, y;
+	int x, y;
 	x = 3;
 	y = 5;
 	move(++x, y);
-	addstr("---------------------------------------------------------------------------");
-	x++;
+	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
-	addstr("  |!|@| |$|%|^| |*|(| |Q|W|E| |T|Y| |I|O|P| |S|D| |G|H|J| |L|Z| |C|V|B| ");
+	addstr("|                                 Play Piano                                |");
 	move(++x, y);
-	addstr("  |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| ");
+	addstr("|                                                                           |");
 	move(++x, y);
-	addstr(" |1|2|3|4|5|6|7|8|9|0|q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m|");
+	addstr("|  |!|@| |$|%|^| |*|(| |Q|W|E| |T|Y| |I|O|P| |S|D| |G|H|J| |L|Z| |C|V|B|    |");
 	move(++x, y);
-	addstr(" |_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|");
+	addstr("|  |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_|    |");
 	move(++x, y);
-	addstr("---------------------------------------------------------------------------");
+	addstr("| |1|2|3|4|5|6|7|8|9|0|q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m| |");
+	move(++x, y);
+	addstr("| |_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_| |");
+	move(++x, y);
+	addstr("|                                                                           |");
+	move(++x, y);
+	addstr(" ---------------------------------------------------------------------------");
+	move(++x, y);
 	
 	refresh();
 }
-void drawing_record_piano();		// drawing record piano
-void drawing_listen_paino();		// drawing listen piano
+
+void drawing_record_piano(){
+	int x, y;
+	x = 3;
+	y = 5;
+	move(++x, y);
+	addstr(" ---------------------------------------------------------------------------");
+	move(++x, y);
+	addstr("|                                Record Piano                               |");
+	move(++x, y);
+	addstr("|                                                                           |");
+	move(++x, y);
+	addstr("|  |!|@| |$|%|^| |*|(| |Q|W|E| |T|Y| |I|O|P| |S|D| |G|H|J| |L|Z| |C|V|B|    |");
+	move(++x, y);
+	addstr("|  |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_|    |");
+	move(++x, y);
+	addstr("| |1|2|3|4|5|6|7|8|9|0|q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m| |");
+	move(++x, y);
+	addstr("| |_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_| |");
+	move(++x, y);
+	addstr("|                                                                           |");
+	move(++x, y);
+	addstr(" ---------------------------------------------------------------------------");
+	move(++x, y);
+	
+	refresh();
+}
+void drawing_listen_paino(){
+	int x, y;
+	x = 3;
+	y = 5;
+	move(++x, y);
+	addstr(" ---------------------------------------------------------------------------");
+	move(++x, y);
+	addstr("|                                Listen Piano                               |");
+	move(++x, y);
+	addstr(" ---------------------------------------------------------------------------");
+	move(++x, y);
+	
+	refresh();
+}
+
+int check_valid_input(char input){
+	if(input >= '0' && input <= '9')
+		return 1;
+	else if(input >= 'a' && input <= 'z')
+		return 1;
+	else if(input >= 'A' && input <= 'Z')
+		return 1;
+	else if(input == '!' || input == '@' || input == '$' || input == '%' || input == '^' || input == '*' || input == '(')
+		return 1;
+	else
+		return 0;
+}
