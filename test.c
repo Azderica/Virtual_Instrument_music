@@ -12,11 +12,14 @@
 /* set */
 void set_cr_noecho_mode(void);		// no echo mode
 void tty_mode(int);			// tty mode
-void set_screen_size();			// set screen size
 void exception_handler();		// exception handler
 
 /* drawing */
 void drawing_start_img();		// drawing starting img
+int drawing_select_img();		// drawing select img
+void drawing_play_piano();		// drawing play piano
+void drawing_record_piano();		// drawing record piano
+void drawing_listen_paino();		// drawing listen piano
 
 int num = 0;
 
@@ -34,13 +37,9 @@ int playSound( char *filename ) {	// play sound function
 
 int main() {
 	pthread_t t;
-	int i = 0;
-	int pid;
-	int response = 1;
+	int i = 0, response = 0;
 	char *name;	// = "wav/";
-	char line[5] = ".wav";
-	char c[2];
-	char input[BUFSIZ];
+	char line[5] = ".wav", c[2];
 
 	//playSound( argv[1] );
 	/*************************************************
@@ -50,32 +49,29 @@ int main() {
 	set_cr_noecho_mode();
 	signal(SIGINT, exception_handler);
 	signal(SIGQUIT, exception_handler);
-	
-
-	/*************************************************
-	 *                   Draw Map                    *
-	 *************************************************/
 	initscr();
 	clear();
+
+	/*************************************************
+	 *                   Start Logo                  *
+	 *************************************************/
 	drawing_start_img();
+	clear();
+	refresh();
 
 	/*************************************************
-	 *                     Start                     *
+	 *                   Select Menu                 *
 	 *************************************************/
-	if(getchar()){
-		clear();
-		refresh();
-		move(0,0);
-	}
-
-	/*************************************************
-	 *                  Select Menu                  *
-	 *************************************************/
-
+	response = drawing_select_img();
+	clear();
+	refresh();
 
         /*************************************************
          *                     Loop                      *
          *************************************************/
+	//if(response == 1)
+	drawing_play_piano();
+
 	while(1){
 		name = (char*)malloc(sizeof(1000));
 		c[0] = getchar();
@@ -123,10 +119,6 @@ void tty_mode(int how){
 		tcsetattr(0, TCSANOW, &original_mode);
 }
 
-void set_screen_size(){
-	
-}
-
 void exception_handler(){
 	endwin();
 	tty_mode(1);
@@ -134,8 +126,10 @@ void exception_handler(){
 }
 
 void drawing_start_img(){
+	resize_term(25, 95);
 	int i, j, x, y;
 	char str[2][8][100];
+	char input;
 	
 	strcpy(str[0][0], "    ___      ___ ___  ________  _________  ___  ___  ________  ___               ");
 	strcpy(str[0][1], "   |\\  \\    /  /|\\  \\|\\   __  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\  \\             ");
@@ -157,7 +151,7 @@ void drawing_start_img(){
 
 	for(i=0; i<2; i++){
 		for(j=0; j<8; j++){
-			x = 8*i+j;
+			x = 8*i+j+3;
 			y = 5;
 			move(x, y);
 			addstr(str[i][j]);
@@ -174,4 +168,92 @@ void drawing_start_img(){
 	addstr("                               [Press Any Key]                               ");
 
 	refresh();
+
+	while(1){
+		input = getchar();
+		if(input>='a' && input<='z')
+			break;
+	}
+	move(0,0);
 }
+
+int drawing_select_img(){
+	resize_term(25, 95);
+	int i, j, x, y;
+	char input;
+
+	x = 4;
+	y = 5;
+	move(x, y);
+	addstr("-----------------------------------------------------------------------------");
+	move(++x, y);
+	addstr("                                 Select Menu                                 ");
+	move(++x, y);
+	addstr("-----------------------------------------------------------------------------");
+	move(x+4, y);
+	addstr("                               1. Play Piano                                 ");
+	move(x+8, y);
+	addstr("                               2. Record Piano                               ");
+	move(x+12, y);
+	addstr("                               3. Listen Piano                               ");
+	move(x+16, y);
+	addstr("-----------------------------------------------------------------------------");
+	move(x+17, y);
+	addstr("            Key       - u : up   d : down   y : select   n : exit            ");
+	move(x+18, y);
+	addstr("-----------------------------------------------------------------------------");
+
+	x = 10;			// now 10
+	y = 33;
+	move(x,y);
+
+	refresh();
+
+	while(1){
+		input = getchar();
+		if(input == 'u' || input == 'U'){
+			if(x > 10)
+				x -= 4;
+		}
+		else if(input == 'd' || input == 'D'){
+			if(x < 18)
+				x += 4;
+		}
+		else if(input == 'y' || input == 'Y'){
+			if(x == 10)
+				return 1;
+			else if(x == 14)
+				return 2;
+			else if(x == 18)
+				return 3;
+		}
+		else if(input == 'n' || input == 'N')
+			return 0;
+		move(x, y);
+		refresh();
+	}
+	return 0;
+}
+
+void drawing_play_piano(){
+	int i, j, x, y;
+	x = 3;
+	y = 5;
+	move(++x, y);
+	addstr("---------------------------------------------------------------------------");
+	x++;
+	move(++x, y);
+	addstr("  |!|@| |$|%|^| |*|(| |Q|W|E| |T|Y| |I|O|P| |S|D| |G|H|J| |L|Z| |C|V|B| ");
+	move(++x, y);
+	addstr("  |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| |_|_| |_|_|_| ");
+	move(++x, y);
+	addstr(" |1|2|3|4|5|6|7|8|9|0|q|w|e|r|t|y|u|i|o|p|a|s|d|f|g|h|j|k|l|z|x|c|v|b|n|m|");
+	move(++x, y);
+	addstr(" |_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|");
+	move(++x, y);
+	addstr("---------------------------------------------------------------------------");
+	
+	refresh();
+}
+void drawing_record_piano();		// drawing record piano
+void drawing_listen_paino();		// drawing listen piano
