@@ -14,14 +14,17 @@ void tty_mode(int);			// tty mode
 void set_screen_size();			// set screen size
 void exception_handler();		// exception handler
 
+int num = 0;
+
 int playSound( char *filename ) {	// play sound function
 	char command[256];
 	int status;
-
+	num+=1;
 	sprintf( command, "aplay -N -c 1 -q -t wav %s", filename );
 
 	status = system( command );
-
+	printf("num = %d\n", num);
+	num-=1;
 	return status;
 }
 
@@ -60,14 +63,21 @@ int main() {
 	while(1){
 		name = (char*)malloc(sizeof(1000));
 		c[0] = getchar();
+			
 		c[1] = '\0';
 		strcpy(name, "wav/");
 
 		strcat(name, c);
 		strcat(name, line);
-		pthread_create(&t, NULL, playSound,(void *)name);
-		//playSound(name);
-		usleep(10000);
+		if(num<30)
+		{
+			pthread_create(&t, NULL, playSound,(void *)name);
+			usleep(10000);
+		}
+		else
+		{
+			
+		}
 		
 		free(name);
 		refresh();
