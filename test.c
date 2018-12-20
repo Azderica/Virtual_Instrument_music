@@ -4,11 +4,14 @@
 #include	<string.h>
 #include	<unistd.h>
 #include	<sys/wait.h>
+#include	<sys/ioctl.h>
 #include	<termios.h>
-#include <pthread.h>
+#include	<pthread.h>
+#include	<termios.h>
 
 void set_cr_noecho_mode(void);
 void tty_mode(int);
+void set_screen_size();
 
 int playSound( char *filename ) {
 	char command[256];
@@ -35,6 +38,8 @@ int main() {
 
 	tty_mode(0);
 	set_cr_noecho_mode();
+	//stty rows 50 cols 132
+	
 	while(1){
 		name = (char*)malloc(sizeof(1000));
 		c[0] = getchar();
@@ -77,3 +82,7 @@ void tty_mode(int how){
 		tcsetattr(0, TCSANOW, &original_mode);
 }
 
+void set_screen_size(){
+	SMALL_RECT windowSize = {0 , 0 , 77 , 47} //change the values
+	SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &windowSize)
+}
