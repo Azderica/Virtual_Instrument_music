@@ -1,4 +1,3 @@
-
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<string.h>
@@ -8,12 +7,14 @@
 #include	<termios.h>
 #include	<pthread.h>
 #include	<termios.h>
+#include	<curses.h>
 
-void set_cr_noecho_mode(void);
-void tty_mode(int);
-void set_screen_size();
+void set_cr_noecho_mode(void);		// no echo mode
+void tty_mode(int);			// tty mode
+void set_screen_size();			// set screen size
+void exception_handler();		// exception handler
 
-int playSound( char *filename ) {
+int playSound( char *filename ) {	// play sound function
 	char command[256];
 	int status;
 
@@ -35,11 +36,27 @@ int main() {
 	char input[BUFSIZ];
 
 	//playSound( argv[1] );
-
+	/*************************************************
+	 *                   Preference                  *
+	 *************************************************/
 	tty_mode(0);
 	set_cr_noecho_mode();
-	//stty rows 50 cols 132
+	signal(SIGINT, exception_handler);
+	signal(SIGQUIT, exception_handler);
 	
+
+	/*************************************************
+	 *                   Draw Map                    *
+	 *************************************************/
+	initscr();
+	clear();
+	refresh();
+
+
+
+        /*************************************************
+         *                     Loop                      *
+         *************************************************/
 	while(1){
 		name = (char*)malloc(sizeof(1000));
 		c[0] = getchar();
@@ -52,14 +69,12 @@ int main() {
 		//playSound(name);
 		usleep(10000);
 		
-	//	pthread_create(&t[1], NULL, playSound,(void *)name);
-	//	pthread_join(t[0],NULL);
-	//	pthread_join(t[1],NULL);
 		free(name);
+		refresh();
 	}
-//	pthread_join(t1,NULL);
-//	pthread_join(t2,NULL);
+	endwin();
 	tty_mode(1);
+
 
 	return 0;
 }
@@ -83,6 +98,10 @@ void tty_mode(int how){
 }
 
 void set_screen_size(){
-	SMALL_RECT windowSize = {0 , 0 , 77 , 47} //change the values
-	SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &windowSize)
+	
+}
+
+void exception_handler(){
+	tty_mode(1);
+	exit(1);
 }

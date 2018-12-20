@@ -1,4 +1,4 @@
 all : test
 
 test : test.c
-	gcc -pthread test.c -o test
+	gcc test.c -lpthread -lcurses -o test
