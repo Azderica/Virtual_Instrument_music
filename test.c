@@ -13,6 +13,7 @@
 void set_cr_noecho_mode(void);		// no echo mode
 void tty_mode(int);			// tty mode
 void exception_handler();		// exception handler
+void set_sheet_data();			// set sheet data
 
 /* drawing */
 void drawing_start_img();		// drawing starting img
@@ -24,7 +25,10 @@ void drawing_listen_paino();		// drawing listen piano
 /* check */
 int check_valid_input(char input);	// check valid key value
 
+/* global variable */
 int num = 0;
+int sheet_size[6];
+char sheet[6][15][100];
 
 int playSound( char *filename ) {	// play sound function
 	char command[256];
@@ -52,6 +56,9 @@ int main() {
 	signal(SIGINT, exception_handler);
 	signal(SIGQUIT, exception_handler);
 	resize_term(30, 95);
+
+	set_sheet_data();
+	
 	initscr();
 	clear();
 
@@ -161,6 +168,34 @@ void exception_handler(){
 	endwin();
 	tty_mode(1);
 	exit(1);
+}
+
+void set_sheet_data(){
+	int i, j;
+	char *name, c[2];
+	char txt[5] = ".txt";
+	FILE *fp;
+
+	for(i=0; i<6; i++){
+		name = (char*)malloc(sizeof(char)*100);
+		strcpy(name, "Sheet/Sheet");
+		c[0] = '0' + i;
+		c[1] = '\0';
+		strcat(name, c);
+		strcat(name, txt);
+		//printf("%s\n", line);
+		
+		j = 0;
+		fp = fopen(name, "r");
+		while(!feof(fp)){
+			fgets(sheet[i][j], 100, fp);
+			j++;
+		}
+		fclose(fp);
+		sheet_size[i] = j;
+		free(name);
+	}
+
 }
 
 void drawing_start_img(){
@@ -273,10 +308,20 @@ int drawing_select_img(){
 }
 
 void drawing_play_piano(){
-	int x, y;
+	int i, j, x, y;
 	x = 3;
 	y = 5;
-	move(++x, y);
+	
+	/*
+	i = 0;
+	for(j=0; j<sheet_size[i]; j++){
+		move(++x, y);
+		addstr(sheet[i][j]);
+	}*/
+
+	
+	x = 20;
+	move(x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
 	addstr("|                                 Play Piano                                |");
@@ -300,10 +345,12 @@ void drawing_play_piano(){
 }
 
 void drawing_record_piano(){
-	int x, y;
+	int i, j, x, y;
 	x = 3;
 	y = 5;
-	move(++x, y);
+	
+	x = 20;
+	move(x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
 	addstr("|                                Record Piano                               |");
@@ -329,6 +376,7 @@ void drawing_listen_paino(){
 	int x, y;
 	x = 3;
 	y = 5;
+
 	move(++x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
