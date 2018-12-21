@@ -38,10 +38,15 @@ void cleer_sheet();			// clear sheet
 void mclock_init();			// set initial time for record
 long int uclock();			// return elapsed time after mclock_init
 
+/* listen */
+void listen_record(int num);		// listen record
+
 /* global variable */
 int num = 0;				// control maximum input
 char sheet[6][15][130];			// sheet papaer
-record rec[1000];			// rec
+record rec[6][1000];			// rec
+int record_size[6];			// record size
+
 struct timeval tp;
 struct timeval __mclock_start;
 
@@ -58,13 +63,15 @@ int playSound( char *filename ) {	// play sound function
 
 int main() {
 	pthread_t t;
-	int i = 0, j, k, response = 1;
+	int i = 0, j, k, response = 1, cursor=0;
 	char *name;	// = "wav/";
 	char line[5] = ".wav", c[2];
 
 	char *sheet_name, sheet_c[2];
 	char txt[5] = ".txt";
 	FILE *fp;
+
+	int flag=0;
 
 	/*************************************************/
 	/*                   Preference                  */
@@ -100,6 +107,11 @@ int main() {
 		fclose(fp);
 		free(sheet_name);
 	}
+	
+	for(i=0; i<6; i++)
+		for(j=0; j<1000; j++) 
+			rec[i][j].name = (char*)malloc(sizeof(char)*20);
+
 
 	/*************************************************
 	 *                   Start Logo                  *
@@ -120,7 +132,7 @@ int main() {
 		clear();
 		refresh();
 	
-		if(response == 1){
+		if(response == 1){				// Play Music
 			drawing_play_piano();
 			i = 0;		// initial	
 			while(1){
@@ -149,9 +161,13 @@ int main() {
 				cleer_sheet();
 			}
 		}
-		i=0;
-		if(response == 2){
+		if(response == 2){				// Record Music
 			drawing_record_piano();
+			i=0, cursor=1;
+
+			move(6+2*cursor, 37);
+			refresh();
+
 			mclock_init();
 			while(1){
 				name = (char*)malloc(sizeof(1000));
@@ -164,25 +180,82 @@ int main() {
 					if(num<30)
 					{
 						pthread_create(&t, NULL, playSound,(void *)name);
-						rec[i].name = name;
-						rec[i].interval_utime = uclock();
-						printf("%s, %ld\n", rec[i].name, rec[i].interval_utime);
-						i++;
+						if(flag){
+							strcpy(rec[cursor][i].name, name);
+							rec[cursor][i].interval_utime = uclock();
+							record_size[cursor]++;
+							//printf("%s, %ld\n", rec[i].name, rec[i].interval_utime);
+							i++;
+						}
 						usleep(10000);
 					}
 					free(name);
+				}
+				if(c[0] == '<' && cursor > 1){
+					cursor--;
+					move(6+2*cursor, 37);
+					refresh();
+				}
+				if(c[0] == '>' && cursor < 5){
+					cursor++;
+					move(6+2*cursor, 37);
+					refresh();
+				}
+				if(c[0] == '+'){
+					flag = 1;
+					record_size[cursor] = 0;
+					move(6+2*cursor, 31);
+					addstr("REC...");
+					refresh();
+				}
+				if(c[0] == '='){
+					flag = 0;
+					move(6+2*cursor, 31);
+					addstr("DONE  ");
+					refresh();
 				}
 				if(c[0] == '[' || c[0] == ']')
 					break;
 			}
 		}
 
-		if(response == 3){
+		if(response == 3){				// Listen Record
 			drawing_listen_piano();
+			i=0, cursor=1;
 
+			move(6+2*cursor, 37);
+			refresh();
+
+			mclock_init();
 			while(1){
-				getchar();
-			
+				name = (char*)malloc(sizeof(1000));
+				c[0] = getchar();
+				if(c[0] == '<' && cursor > 1){
+					cursor--;
+					move(6+2*cursor, 37);
+					refresh();
+				}
+				if(c[0] == '>' && cursor < 6){
+					cursor++;
+					move(6+2*cursor, 37);
+					refresh();
+				}
+				if(c[0] == '+'){
+					move(6+2*cursor, 30);
+					addstr("Play...");
+					refresh();
+					listen_record(cursor);
+					move(6+2*cursor, 30);
+					addstr("       ");
+					refresh();
+				}
+				if(c[0] == '='){
+					move(6+2*cursor, 30);
+					addstr("       ");
+					refresh();
+				}
+				if(c[0] == '[' || c[0] == ']')
+					break;
 			}
 		}
 		clear();
@@ -246,7 +319,7 @@ void drawing_start_img(){
 
 	for(i=0; i<2; i++){
 		for(j=0; j<8; j++){
-			x = 8*i+j+3;
+			x = 8*i+j+4;
 			y = 5;
 			move(x, y);
 			addstr(str[i][j]);
@@ -293,7 +366,7 @@ int drawing_select_img(){
 	move(x+16, y);
 	addstr("-----------------------------------------------------------------------------");
 	move(x+17, y);
-	addstr("            Key    -    u : up   d : down   y : select   n : exit            ");
+	addstr("          Key    -    '<' : up   '>' : down   y : select   n : exit          ");
 	move(x+18, y);
 	addstr("-----------------------------------------------------------------------------");
 
@@ -305,11 +378,11 @@ int drawing_select_img(){
 
 	while(1){
 		input = getchar();
-		if(input == 'u' || input == 'U'){
+		if(input == '<'){
 			if(x > 10)
 				x -= 4;
 		}
-		else if(input == 'd' || input == 'D'){
+		else if(input == '>'){
 			if(x < 18)
 				x += 4;
 		}
@@ -330,7 +403,7 @@ int drawing_select_img(){
 }
 
 void drawing_play_piano(){
-	int i, j, x, y;\
+	int i, j, x, y;
 	y = 5;
 	x = 18;
 	move(x, y);
@@ -352,7 +425,7 @@ void drawing_play_piano(){
 	move(++x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
-	addstr("  change : '<' or '>'                                     exit : '[' or ']' ");
+	addstr("   change : '<', '>'                                      exit : '[', ']'   ");
 	move(++x, y);
 	refresh();
 }
@@ -361,8 +434,27 @@ void drawing_record_piano(){
 	int i, j, x, y;
 	x = 3;
 	y = 5;
-	
-	x = 20;
+	move(++x, y);
+	addstr("-----------------------------------------------------------------------------");
+	move(++x, y);
+	addstr("                                Select Storage                               ");
+	move(++x, y);
+	addstr("-----------------------------------------------------------------------------");	// x = 6
+	move(x+2, y);
+	addstr("                                   Storage 1                                 ");	// x = 8
+	move(x+4, y);
+	addstr("                                   Storage 2                                 ");	// x = 10
+	move(x+6, y);
+	addstr("                                   Storage 3                                 ");
+	move(x+8, y);
+	addstr("                                   Storage 4                                 ");
+	move(x+10, y);
+	addstr("                                   Storage 5                                 ");
+	move(x+12, y);
+	addstr("-----------------------------------------------------------------------------");
+
+	x = 18;
+	y = 5;
 	move(x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
@@ -382,22 +474,42 @@ void drawing_record_piano(){
 	move(++x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
-	addstr("                                                          exit : '[' or ']' ");
+	addstr("   change: '<', '>'       Start: '+'        End: '='       exit: '[', ']'   ");
 	move(++x, y);
 	
 	refresh();
 }
 void drawing_listen_piano(){
-	int x, y;
+	int i, j, x, y;
 	x = 3;
 	y = 5;
+	move(++x, y);
+	addstr("-----------------------------------------------------------------------------");
+	move(++x, y);
+	addstr("                                 Listen Piano                                ");
+	move(++x, y);
+	addstr("-----------------------------------------------------------------------------");	// x = 6
+	move(x+2, y);
+	addstr("                                   Storage 1                                 ");	// x = 8
+	move(x+4, y);
+	addstr("                                   Storage 2                                 ");	// x = 10
+	move(x+6, y);
+	addstr("                                   Storage 3                                 ");
+	move(x+8, y);
+	addstr("                                   Storage 4                                 ");
+	move(x+10, y);
+	addstr("                                   Storage 5                                 ");
+	move(x+12, y);
+	addstr("                                    Sample                                   ");
+	move(x+14, y);
+	addstr("-----------------------------------------------------------------------------");
 
+	x = 20;
+	y = 5;
 	move(++x, y);
-	addstr(" ---------------------------------------------------------------------------");
+	addstr("   change: '<', '>'       Start: '+'        End: '='       exit: '[', ']'   ");
 	move(++x, y);
-	addstr("|                                Listen Piano                               |");
-	move(++x, y);
-	addstr(" ---------------------------------------------------------------------------");
+	addstr("-----------------------------------------------------------------------------");
 	move(++x, y);
 	
 	refresh();
@@ -445,7 +557,6 @@ void cleer_sheet(){
 	refresh();
 }
 
-
 void mclock_init(void)
 {
 	gettimeofday(&__mclock_start,NULL);
@@ -466,4 +577,15 @@ long int uclock(void)
 	}
 	
 	return timeresult.tv_sec * 1000000 + timeresult.tv_usec;
+}
+
+void listen_record(int i){
+	int j;
+	pthread_t t;
+
+	for(j=0; j<record_size[i]-2; j++){
+		pthread_create(&t, NULL, playSound,(void *)(rec[i][j].name));
+		usleep((rec[i][j+1].interval_utime - rec[i][j].interval_utime));
+	}
+	pthread_create(&t, NULL, playSound,(void *)(rec[i][j].name));
 }
