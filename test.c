@@ -235,7 +235,7 @@ int main() {
 					move(6+2*cursor, 37);
 					refresh();
 				}
-				if(c[0] == '>' && cursor < 6){
+				if(c[0] == '>' && cursor < 5){
 					cursor++;
 					move(6+2*cursor, 37);
 					refresh();
@@ -499,8 +499,6 @@ void drawing_listen_piano(){
 	addstr("                                   Storage 4                                 ");
 	move(x+10, y);
 	addstr("                                   Storage 5                                 ");
-	move(x+12, y);
-	addstr("                                    Sample                                   ");
 	move(x+14, y);
 	addstr("-----------------------------------------------------------------------------");
 
