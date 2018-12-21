@@ -26,7 +26,7 @@ IT대학 컴퓨터학부 2015117532 박 명훈
 
 8. GitHub 업로드 결과 (GitHub url, 업로드 현황, 팀원별 활동 현황 (Insights) 등 캡처) 
    GitHub : https://github.com/Azderica/Virtual_Instrument_music.git
-   Youtube : 
+   Youtube : https://youtu.be/NJOvJhJKj6s
 
 9. 고찰 (구현을 하면서 어려웠던 점 및 느낀점) 
    9.1. 구현 과정에서 어려웠던 점
