@@ -1,6 +1,7 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<string.h>
+#include	<strings.h>
 #include	<unistd.h>
 #include	<sys/wait.h>
 #include	<sys/ioctl.h>
@@ -9,26 +10,40 @@
 #include	<termios.h>
 #include	<curses.h>
 
+typedef struct record{
+	char *name;
+	long int interval_utime;
+}record; 
+
 /* set */
 void set_cr_noecho_mode(void);		// no echo mode
 void tty_mode(int);			// tty mode
 void exception_handler();		// exception handler
-void set_sheet_data();			// set sheet data
 
 /* drawing */
 void drawing_start_img();		// drawing starting img
 int drawing_select_img();		// drawing select img
 void drawing_play_piano();		// drawing play piano
 void drawing_record_piano();		// drawing record piano
-void drawing_listen_paino();		// drawing listen piano
+void drawing_listen_piano();		// drawing listen piano
 
 /* check */
 int check_valid_input(char input);	// check valid key value
 
+/* sheet */
+void select_sheet(int i);		// select sheet
+void cleer_sheet();			// clear sheet
+
+/* clock */
+void mclock_init();			// set initial time for record
+long int uclock();			// return elapsed time after mclock_init
+
 /* global variable */
-int num = 0;
-int sheet_size[6];
-char sheet[6][15][100];
+int num = 0;				// control maximum input
+char sheet[6][15][130];			// sheet papaer
+record rec[1000];			// rec
+struct timeval tp;
+struct timeval __mclock_start;
 
 int playSound( char *filename ) {	// play sound function
 	char command[256];
@@ -43,24 +58,48 @@ int playSound( char *filename ) {	// play sound function
 
 int main() {
 	pthread_t t;
-	int i = 0, response = 1;
+	int i = 0, j, k, response = 1;
 	char *name;	// = "wav/";
 	char line[5] = ".wav", c[2];
 
-	//playSound( argv[1] );
-	/*************************************************
-	 *                   Preference                  *
-	 *************************************************/
+	char *sheet_name, sheet_c[2];
+	char txt[5] = ".txt";
+	FILE *fp;
+
+	/*************************************************/
+	/*                   Preference                  */
+	/*************************************************/
 	tty_mode(0);
 	set_cr_noecho_mode();
 	signal(SIGINT, exception_handler);
 	signal(SIGQUIT, exception_handler);
-	resize_term(30, 95);
+	resize_term(30, 130);
 
-	set_sheet_data();
-	
 	initscr();
 	clear();
+	
+	/*************************************************/
+	/*                 set sheet data                */
+	/*************************************************/
+	for(i=0; i<6; i++)
+		for(j=0; j<15; j++)
+			for(k=0; k<130; k++)
+				sheet[i][j][k] = 0;
+	for(i=0; i<6; i++){
+		sheet_name = (char*)malloc(sizeof(char)*130);
+		strcpy(sheet_name, "Sheet/Sheet");
+		sheet_c[0] = '0' + i;
+		sheet_c[1] = '\0';
+		strcat(sheet_name, sheet_c);
+		strcat(sheet_name, txt);
+		
+		fp = fopen(sheet_name, "r");
+		for(j=0; j<15; j++){
+			fgets(sheet[i][j], 130, fp);
+		}
+		fclose(fp);
+		free(sheet_name);
+	}
 
 	/*************************************************
 	 *                   Start Logo                  *
@@ -83,8 +122,9 @@ int main() {
 	
 		if(response == 1){
 			drawing_play_piano();
-	
+			i = 0;		// initial	
 			while(1){
+				select_sheet(i);
 				name = (char*)malloc(sizeof(1000));
 				c[0] = getchar();
 				if(check_valid_input(c[0])){
@@ -99,14 +139,20 @@ int main() {
 					}
 					free(name);
 				}
+				if(c[0] == '<' && i > 0)
+					i--;
+				if(c[0] == '>' && i < 5)
+					i++;
 				if(c[0] == '[' || c[0] == ']')
 					break;
+				//fflush(stdout);
+				cleer_sheet();
 			}
 		}
-
+		i=0;
 		if(response == 2){
 			drawing_record_piano();
-
+			mclock_init();
 			while(1){
 				name = (char*)malloc(sizeof(1000));
 				c[0] = getchar();
@@ -118,6 +164,10 @@ int main() {
 					if(num<30)
 					{
 						pthread_create(&t, NULL, playSound,(void *)name);
+						rec[i].name = name;
+						rec[i].interval_utime = uclock();
+						printf("%s, %ld\n", rec[i].name, rec[i].interval_utime);
+						i++;
 						usleep(10000);
 					}
 					free(name);
@@ -128,7 +178,7 @@ int main() {
 		}
 
 		if(response == 3){
-			drawing_listen_paino();
+			drawing_listen_piano();
 
 			while(1){
 				getchar();
@@ -170,38 +220,10 @@ void exception_handler(){
 	exit(1);
 }
 
-void set_sheet_data(){
-	int i, j;
-	char *name, c[2];
-	char txt[5] = ".txt";
-	FILE *fp;
-
-	for(i=0; i<6; i++){
-		name = (char*)malloc(sizeof(char)*100);
-		strcpy(name, "Sheet/Sheet");
-		c[0] = '0' + i;
-		c[1] = '\0';
-		strcat(name, c);
-		strcat(name, txt);
-		//printf("%s\n", line);
-		
-		j = 0;
-		fp = fopen(name, "r");
-		while(!feof(fp)){
-			fgets(sheet[i][j], 100, fp);
-			j++;
-		}
-		fclose(fp);
-		sheet_size[i] = j;
-		free(name);
-	}
-
-}
-
 void drawing_start_img(){
 	//resize_term(30, 95);
 	int i, j, x, y;
-	char str[2][8][100];
+	char str[2][8][130];
 	char input;
 	
 	strcpy(str[0][0], "    ___      ___ ___  ________  _________  ___  ___  ________  ___               ");
@@ -308,19 +330,9 @@ int drawing_select_img(){
 }
 
 void drawing_play_piano(){
-	int i, j, x, y;
-	x = 3;
+	int i, j, x, y;\
 	y = 5;
-	
-	/*
-	i = 0;
-	for(j=0; j<sheet_size[i]; j++){
-		move(++x, y);
-		addstr(sheet[i][j]);
-	}*/
-
-	
-	x = 20;
+	x = 18;
 	move(x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
@@ -340,7 +352,8 @@ void drawing_play_piano(){
 	move(++x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
-	
+	addstr("  change : '<' or '>'                                     exit : '[' or ']' ");
+	move(++x, y);
 	refresh();
 }
 
@@ -369,10 +382,12 @@ void drawing_record_piano(){
 	move(++x, y);
 	addstr(" ---------------------------------------------------------------------------");
 	move(++x, y);
+	addstr("                                                          exit : '[' or ']' ");
+	move(++x, y);
 	
 	refresh();
 }
-void drawing_listen_paino(){
+void drawing_listen_piano(){
 	int x, y;
 	x = 3;
 	y = 5;
@@ -399,4 +414,56 @@ int check_valid_input(char input){
 		return 1;
 	else
 		return 0;
+}
+
+void select_sheet(int i){
+	int j, k, x=2, y=5;
+	char *sheet_line;
+	sheet_line = (char*)malloc(sizeof(char)*130);
+	for(j=0; j<15; j++){
+		if(sheet[i][j][0] == '\0')
+			break;
+		move(x++, y);
+		for(k=0; k<130; k++);
+			sheet_line[k] = ' ';
+		strncpy(sheet_line, sheet[i][j], strlen(sheet[i][j])-2);
+		sheet_line[99] = '\0';
+		addstr(sheet_line);
+	}
+	free(sheet_line);
+	move(0, 0);
+	refresh();
+}
+
+void cleer_sheet(){
+	int x;
+	char clear_line[130] = "                                                                                        ";
+	for(x=0; x<18; x++){
+		move(x, 0);
+		addstr(clear_line);
+	}
+	refresh();
+}
+
+
+void mclock_init(void)
+{
+	gettimeofday(&__mclock_start,NULL);
+}
+
+long int uclock(void)
+{
+	struct timeval timecurrent;
+	struct timeval timeresult;
+	gettimeofday(&timecurrent, NULL);
+	timeresult.tv_sec = timecurrent.tv_sec - __mclock_start.tv_sec;
+	timeresult.tv_usec = timecurrent.tv_usec - __mclock_start.tv_usec;
+	
+	if(timeresult.tv_usec < 0)
+	{
+		timeresult.tv_sec--;
+		timeresult.tv_usec+= 1000000;
+	}
+	
+	return timeresult.tv_sec * 1000000 + timeresult.tv_usec;
 }

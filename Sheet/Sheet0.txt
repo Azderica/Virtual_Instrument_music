@@ -1,11 +1,11 @@
-CANON IN C - PACHELBEL
+CANON IN C - PACHELBEL                                                     
 ---------------------------------------------------------------------------
-[8sf] [5ad] [60ps] [3oa] [4ip] [1uo] [4ip] [5oa] [8sf] o [5ad] o [60ps] u 
-[3oa] u [4ip] i [1uo] u [4ip] i [5oa] o [8s] [0a] [ws] [tu] [7o] 9 [wa] r 
-[6s] 8 [0f] e [3h] 7 0 [wj] [4g] [8f] [qd] [tg] [1f] [5d] [8s] [0a] [4p] 
-[8o] [qi] [es] [5s] 9 [wa] r [8s] [0a] [ws] [tu] [7o] 9 [wa] r [6s] 8 [0f]
- e [3h] [7f] [0h] [wj] [4g] [8f] [qd] [tg] [1f] [5d] [8s] [0a] [4p] [8o] 
-[qi] [es] [5s] 9 [wa] r 8 0 [wf] t [7d] 9 w r 6 8 [0s] e [3f] 7 0 w [4j] 
+[8sf] [5ad] [60ps] [3oa] [4ip] [1uo] [4ip] [5oa] [8sf] o [5ad] o [60ps] u  
+[3oa] u [4ip] i [1uo] u [4ip] i [5oa] o [8s] [0a] [ws] [tu] [7o] 9 [wa] r  
+[6s] 8 [0f] e [3h] 7 0 [wj] [4g] [8f] [qd] [tg] [1f] [5d] [8s] [0a] [4p]   
+[8o] [qi] [es] [5s] 9 [wa] r [8s] [0a] [ws] [tu] [7o] 9 [wa] r [6s] 8 [0f] 
+ e [3h] [7f] [0h] [wj] [4g] [8f] [qd] [tg] [1f] [5d] [8s] [0a] [4p] [8o]   
+[qi] [es] [5s] 9 [wa] r 8 0 [wf] t [7d] 9 w r 6 8 [0s] e [3f] 7 0 w [4j]   
 8 q t [1h] 5 8 0 [4j] 8 q e [5k] 9 w r [8h] [0f] g [wh] [tf] g [7h] o [9p] 
-a [ws] d [rf] g [6f] [8s] d [0f] [eu] i [3o] p [7o] i [0o] s [wa] s [4p] 
+a [ws] d [rf] g [6f] [8s] d [0f] [eu] i [3o] p [7o] i [0o] s [wa] s [4p]   
 ---------------------------------------------------------------------------
