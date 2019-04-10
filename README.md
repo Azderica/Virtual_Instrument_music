@@ -12,20 +12,16 @@ for system programming
 > 키보드(Input) - PC(Terminal) - 스피커, 모니터(Output)
 
 ## 3. 시스템 디자인 (유스케이스 다이어그램: 사용사례 및 액터 표현) 
+![Virtual Music Use Case](./img/Use_case.jpg)
        
 ## 4. 시스템 내부 구조 (클래스 다이어그램: 시스템 내 모듈 구조) 
+![Virtual Music Class Diagram](./img/Class_Diagram.jpg)
   
 ## 5. 팀원 구성 및 역할 (각 팀원별 이름, 학과, 학년 및 역할(맡은 모듈 등)) 
 > IT대학 컴퓨터학부 2015117629 김 지수 <br>
 > IT대학 컴퓨터학부 2015117532 박 명훈
 
 ## 6. 시스템 상세 설계  (주요 기능에 대한 구현 알고리즘)
-
-### Use Case Diagram
-![Virtual Music Use Case](./img/Use_case.jpg)
-
-### Class Diagram 
-![Virtual Music Class Diagram](./img/Class_Diagram.jpg)
 
 ### 6.1 피아노 연주 (프로그램이 실행되는 시퀀스 다이어그램 또는 상태 다이어그램) 
 
