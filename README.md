@@ -20,7 +20,13 @@ for system programming
 > IT대학 컴퓨터학부 2015117532 박 명훈
 
 ## 6. 시스템 상세 설계  (주요 기능에 대한 구현 알고리즘)
-![Virtual Music Class Diagram](./img1.jpg)
+
+### Use Case Diagram
+![Virtual Music Use Case](./img/Use_case.jpg)
+
+### Class Diagram 
+![Virtual Music Class Diagram](./img/Class_Diagram.jpg)
+
 ### 6.1 피아노 연주 (프로그램이 실행되는 시퀀스 다이어그램 또는 상태 다이어그램) 
 
 ### 6.2 피아노 녹음 (프로그램이 실행되는 시퀀스 다이어그램 또는 상태 다이어그램) 
